@@ -151,53 +151,53 @@
             </div>
         </div>
 
-        <!-- Interfaz principal con 2 intentos gratuitos y modal de pago tras agotar los intentos -->
+        <!-- Main Interface with 2 free attempts and payment modal after limit -->
         <div id="main-interface" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Panel de entrada -->
+            <!-- Input Panel -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                 <div class="flex items-center mb-6">
                     <div class="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center mr-3">
                         <i class="fas fa-upload text-gray-600"></i>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900">Sube tu imagen</h3>
+                    <h3 class="text-xl font-semibold text-gray-900">Upload & Configure</h3>
                 </div>
 
-                <!-- Subida de imagen de línea -->
+                <!-- Line Art Upload -->
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 mb-3">
-                        Imagen de línea
+                        Line Art Image
                     </label>
                     <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer bg-gray-50 hover:bg-gray-100">
                         <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-4"></i>
-                        <p class="text-gray-600 mb-2">Haz clic o arrastra tu imagen aquí</p>
-                        <p class="text-sm text-gray-500">PNG, JPG, SVG hasta 10MB</p>
+                        <p class="text-gray-600 mb-2">Click or drag your image here</p>
+                        <p class="text-sm text-gray-500">PNG, JPG, SVG up to 10MB</p>
                     </div>
                 </div>
 
-                <!-- Imagen de referencia -->
+                <!-- Reference Image -->
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 mb-3">
-                        Imagen de referencia <span class="text-gray-500 font-normal">(opcional)</span>
+                        Reference Image <span class="text-gray-500 font-normal">(optional)</span>
                     </label>
                     <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer bg-gray-50 hover:bg-gray-100">
                         <i class="fas fa-image text-3xl text-gray-400 mb-4"></i>
-                        <p class="text-gray-600 mb-2">Sube una referencia de color</p>
-                        <p class="text-sm text-gray-500">Ayuda a la IA a entender tu paleta deseada</p>
+                        <p class="text-gray-600 mb-2">Upload a color reference</p>
+                        <p class="text-sm text-gray-500">Helps AI understand your desired palette</p>
                     </div>
                 </div>
 
-                <!-- Configuración -->
+                <!-- Settings -->
                 <div class="space-y-6">
-                    <!-- Fondo transparente -->
+                    <!-- Transparent Background -->
                     <div class="flex items-center justify-between">
                         <div>
-                            <label class="text-sm font-medium text-gray-700">Fondo transparente</label>
-                            <p class="text-xs text-gray-500">Ideal para superposiciones</p>
+                            <label class="text-sm font-medium text-gray-700">Transparent Background</label>
+                            <p class="text-xs text-gray-500">Ideal for overlays</p>
                         </div>
                         <div class="relative">
                             <input type="checkbox" class="sr-only" id="transparent-bg">
-                            <label for="transparent-bg" class="block w-12 h-6 bg-gray-200 rounded-full cursor-pointer transition-colors">
-                                <span class="block w-5 h-5 bg-white rounded-full shadow transform transition-transform translate-x-1 translate-y-0.5"></span>
+                            <label for="transparent-bg" class="block w-12 h-6 bg-gray-200 rounded-full cursor-pointer">
+                                <span class="block w-5 h-5 bg-white rounded-full shadow transform translate-x-1 translate-y-0.5"></span>
                             </label>
                         </div>
                     </div>
@@ -205,30 +205,33 @@
                     <!-- AI Model Selection -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">AI Model</label>
-                        <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
+                        <select class="w-full px-4 py-3 border border-gray-300 rounded-lg">
                             <option>Professional (Recommended)</option>
                             <option>Standard</option>
                             <option>Fast</option>
                         </select>
                     </div>
 
-                    <!-- Custom Prompt -->
+                    <!-- Custom Instructions -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Custom Instructions <span class="text-gray-500 font-normal">(Optional)</span>
+                            Custom Instructions <span class="text-gray-500 font-normal">(optional)</span>
                         </label>
                         <textarea 
                             placeholder="Describe your desired color style, e.g., 'warm autumn tones, muted palette, professional branding colors'"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors resize-none"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none"
                             rows="3"
                         ></textarea>
                     </div>
 
-                    <!-- Color Button -->
-                    <button class="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white font-semibold py-4 px-6 rounded-xl hover:from-primary-600 hover:to-primary-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl">
+                    <!-- Colorize Button -->
+                    <button id="colorize-btn" class="w-full bg-red-600 text-white font-semibold py-4 px-6 rounded-xl hover:bg-red-700 transition-all duration-200">
                         <i class="fas fa-magic mr-2"></i>
                         Colorize Image
                     </button>
+                    <div id="attempts-info" class="text-center text-sm text-gray-500 mt-2">
+                        Free attempts left: <span id="attempts-count">2</span>
+                    </div>
                 </div>
             </div>
 
@@ -236,12 +239,12 @@
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                 <div class="flex items-center justify-between mb-6">
                     <div class="flex items-center">
-                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                            <i class="fas fa-check text-green-600"></i>
+                        <div class="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-check text-gray-600"></i>
                         </div>
                         <h3 class="text-xl font-semibold text-gray-900">Results</h3>
                     </div>
-                    <button class="text-primary-600 hover:text-primary-700 transition-colors">
+                    <button class="text-gray-600 hover:text-gray-800">
                         <i class="fas fa-download text-lg"></i>
                     </button>
                 </div>
@@ -251,23 +254,73 @@
                     <div class="text-center">
                         <i class="fas fa-image text-4xl text-gray-400 mb-4"></i>
                         <p class="text-gray-600">Your colored image will appear here</p>
-                        <p class="text-sm text-gray-500 mt-2">Upload an image and click "Colorize" to get started</p>
+                        <p class="text-sm text-gray-500 mt-2">Upload an image and click "Colorize Image"</p>
                     </div>
                 </div>
 
                 <!-- Download Options -->
                 <div class="mt-6 grid grid-cols-2 gap-3">
-                    <button class="flex items-center justify-center space-x-2 py-3 px-4 border border-gray-300 rounded-lg hover:border-primary-400 hover:bg-primary-50 transition-colors">
-                        <i class="fas fa-download text-primary-600"></i>
+                    <button class="flex items-center justify-center space-x-2 py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-100">
+                        <i class="fas fa-download text-gray-600"></i>
                         <span class="text-sm font-medium text-gray-700">PNG</span>
                     </button>
-                    <button class="flex items-center justify-center space-x-2 py-3 px-4 border border-gray-300 rounded-lg hover:border-primary-400 hover:bg-primary-50 transition-colors">
-                        <i class="fas fa-download text-primary-600"></i>
+                    <button class="flex items-center justify-center space-x-2 py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-100">
+                        <i class="fas fa-download text-gray-600"></i>
                         <span class="text-sm font-medium text-gray-700">SVG</span>
                     </button>
                 </div>
             </div>
         </div>
+
+        <!-- Payment Modal (hidden by default) -->
+        <div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-2xl p-8 max-w-lg w-full border border-gray-200">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4 text-center">You have used your free attempts!</h2>
+                <p class="text-gray-700 mb-6 text-center">To continue using the tool, please choose a plan:</p>
+                <!-- Pricing block (reuse existing pricing) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 text-center">
+                        <div class="text-2xl font-bold text-gray-900 mb-2">$5</div>
+                        <div class="text-gray-700 mb-2">500 credits</div>
+                        <button class="w-full bg-red-600 text-white font-semibold py-2 rounded-lg hover:bg-red-700 transition">Buy</button>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 text-center">
+                        <div class="text-2xl font-bold text-gray-900 mb-2">$10</div>
+                        <div class="text-gray-700 mb-2">1000 credits</div>
+                        <button class="w-full bg-red-600 text-white font-semibold py-2 rounded-lg hover:bg-red-700 transition">Buy</button>
+                    </div>
+                </div>
+                <button id="close-modal" class="mt-6 w-full text-gray-600 hover:text-gray-900 py-2 rounded-lg border border-gray-300">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Script to handle attempts and show modal -->
+        <script>
+            let attempts = 2;
+            const attemptsCount = document.getElementById('attempts-count');
+            const colorizeBtn = document.getElementById('colorize-btn');
+            const paymentModal = document.getElementById('payment-modal');
+            const closeModal = document.getElementById('close-modal');
+
+            colorizeBtn.addEventListener('click', function(e) {
+                if (attempts > 0) {
+                    attempts--;
+                    attemptsCount.textContent = attempts;
+                    // Here goes the logic to process the image
+                    if (attempts === 0) {
+                        setTimeout(() => {
+                            paymentModal.classList.remove('hidden');
+                        }, 500);
+                    }
+                } else {
+                    paymentModal.classList.remove('hidden');
+                }
+            });
+
+            closeModal.addEventListener('click', function() {
+                paymentModal.classList.add('hidden');
+            });
+        </script>
 
         <!-- Features Section -->
         <div class="mt-16">
