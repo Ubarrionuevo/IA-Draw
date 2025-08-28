@@ -1,6 +1,13 @@
-# LineArt Pro - AI-Powered Line Art Coloring
+# Sketcha - AI-Powered Line Art Coloring
 
 A professional web application for designers and creative professionals to transform line art and sketches into beautifully colored artwork using advanced AI technology.
+
+## 📁 Project Structure
+
+- **`index.html`** - Landing page with product information, demos, and pricing
+- **`workspace.html`** - Main workspace for AI colorization (requires registration)
+- **`script.js`** - Interactive functionality, animations, and workspace logic
+- **`README.md`** - Project documentation
 
 ## 🎨 Features
 
@@ -16,31 +23,39 @@ A professional web application for designers and creative professionals to trans
 - **Custom Instructions**: Add specific color style preferences and instructions
 - **AI Model Selection**: Choose between Professional, Standard, and Fast processing modes
 - **Commercial Usage Rights**: Full rights to use generated artwork commercially
+- **Freemium Model**: 2 free attempts before requiring payment
 
 ### User Experience
 - **Minimalist Design**: Clean, professional interface optimized for designers
 - **Responsive Layout**: Works perfectly on desktop, tablet, and mobile devices
 - **Real-time Feedback**: Instant notifications and progress indicators
 - **Keyboard Shortcuts**: Power user features for efficient workflow
+- **Smooth Animations**: Professional motion design and transitions
 
-## 🚀 Getting Started
+## 🚀 User Flow
 
-### Prerequisites
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- No additional software installation required
+### 1. Landing Page Experience
+- **Product Information**: Learn about AI colorization capabilities
+- **Live Demos**: See before/after examples of transformations
+- **Feature Showcase**: Understand professional benefits
+- **Pricing Plans**: Clear pricing with $5 and $10 options
 
-### Installation
-1. Download or clone this repository
-2. Open `index.html` in your web browser
-3. Start using LineArt Pro immediately
+### 2. Registration & Access
+- **Get Started Button**: Direct access to workspace
+- **No Credit Card Required**: Start with 2 free attempts
+- **Instant Access**: No lengthy registration process
 
-### Usage
-1. **Upload Line Art**: Click or drag your black and white line art image
-2. **Add Reference** (Optional): Upload a colored reference image for style guidance
-3. **Configure Settings**: Choose AI model and enable transparent backgrounds
-4. **Add Instructions** (Optional): Describe your desired color style
-5. **Colorize**: Click "Colorize Image" to process your artwork
-6. **Download**: Save your colored artwork in PNG or SVG format
+### 3. Workspace Interface
+- **Upload Panel**: Drag & drop line art and reference images
+- **Configuration Options**: AI model selection and custom instructions
+- **Processing**: Real-time AI colorization with progress indicators
+- **Results Display**: High-quality output with download options
+
+### 4. Payment Integration
+- **Freemium Model**: 2 free attempts included
+- **Payment Modal**: Appears after free attempts are exhausted
+- **Plan Selection**: Choose between $5 (500 credits) or $10 (1000 credits)
+- **Seamless Upgrade**: Continue working immediately after payment
 
 ## 💰 Pricing
 
@@ -58,6 +73,7 @@ A professional web application for designers and creative professionals to trans
 - **Tailwind CSS**: Utility-first CSS framework for rapid UI development
 - **Vanilla JavaScript**: No framework dependencies for maximum performance
 - **Font Awesome**: Professional icon library
+- **Custom Animations**: CSS keyframes and transitions
 
 ### Browser Support
 - Chrome 90+
@@ -94,6 +110,7 @@ Key settings can be modified in `script.js`:
 - Supported formats
 - Processing timeouts
 - Notification durations
+- Attempt limits and payment triggers
 
 ## 📱 Responsive Design
 
@@ -121,6 +138,7 @@ To make this production-ready, you would need to:
 3. **File Storage**: Set up cloud storage for image processing
 4. **User Authentication**: Add user accounts and credit management
 5. **Credit System**: Implement credit tracking and usage limits
+6. **Attempt Tracking**: Server-side tracking of free attempts
 
 ### API Integration
 The JavaScript includes placeholder functions for:
@@ -128,6 +146,7 @@ The JavaScript includes placeholder functions for:
 - AI processing requests
 - Payment processing
 - Download generation
+- Attempt management
 
 ## 📄 License
 
@@ -146,4 +165,4 @@ For support or questions:
 
 ---
 
-**LineArt Pro** - Professional AI-powered line art coloring for designers and creative professionals.
+**Sketcha** - Professional AI-powered line art coloring for designers and creative professionals.

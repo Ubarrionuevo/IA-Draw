@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeColorizeButton();
     initializeDownloadButtons();
     initializePricingButton();
+    initializeAttemptsSystem();
 });
 
 // File Upload Functionality
@@ -301,9 +302,99 @@ function validateForm() {
     return true;
 }
 
+// Attempts System Functionality
+function initializeAttemptsSystem() {
+    let attempts = 2;
+    const attemptsCount = document.getElementById('attempts-count');
+    const colorizeBtn = document.getElementById('colorize-btn');
+    const paymentModal = document.getElementById('payment-modal');
+    const closeModal = document.getElementById('close-modal');
+
+    if (!colorizeBtn || !paymentModal) return;
+
+    colorizeBtn.addEventListener('click', function(e) {
+        if (attempts > 0) {
+            attempts--;
+            attemptsCount.textContent = attempts;
+            
+            // Process the image (simulate)
+            processImage();
+            
+            if (attempts === 0) {
+                setTimeout(() => {
+                    showPaymentModal();
+                }, 1000);
+            }
+        } else {
+            showPaymentModal();
+        }
+    });
+
+    closeModal.addEventListener('click', function() {
+        hidePaymentModal();
+    });
+
+    // Close modal when clicking outside
+    paymentModal.addEventListener('click', function(e) {
+        if (e.target === paymentModal) {
+            hidePaymentModal();
+        }
+    });
+
+    function showPaymentModal() {
+        paymentModal.classList.remove('hidden');
+        setTimeout(() => {
+            const modalContent = paymentModal.querySelector('div');
+            modalContent.style.transform = 'scale(1)';
+            modalContent.style.opacity = '1';
+        }, 10);
+    }
+
+    function hidePaymentModal() {
+        const modalContent = paymentModal.querySelector('div');
+        modalContent.style.transform = 'scale(0.95)';
+        modalContent.style.opacity = '0';
+        setTimeout(() => {
+            paymentModal.classList.add('hidden');
+        }, 300);
+    }
+}
+
+function processImage() {
+    // Simulate image processing
+    const colorizeBtn = document.getElementById('colorize-btn');
+    const originalText = colorizeBtn.innerHTML;
+    
+    colorizeBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+    colorizeBtn.disabled = true;
+    
+    setTimeout(() => {
+        // Show result
+        const resultArea = document.querySelector('.border-dashed:last-of-type');
+        if (resultArea) {
+            resultArea.innerHTML = `
+                <div class="relative">
+                    <img src="https://picsum.photos/400/300?random=${Math.floor(Math.random() * 1000)}" alt="Colored Result" class="max-w-full max-h-48 object-contain rounded-lg">
+                    <div class="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
+                        <i class="fas fa-check mr-1"></i>Complete
+                    </div>
+                </div>
+            `;
+            resultArea.classList.add('border-green-400', 'bg-green-50');
+        }
+        
+        // Reset button
+        colorizeBtn.innerHTML = originalText;
+        colorizeBtn.disabled = false;
+        
+        showNotification('Image colorized successfully!', 'success');
+    }, 3000);
+}
+
 // Export functions for external use
 window.LineArtPro = {
     showNotification,
     validateForm,
-    addLoadingState
+    addLoadingState,
+    processImage
 };
