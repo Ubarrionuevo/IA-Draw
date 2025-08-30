@@ -251,5 +251,27 @@
     </footer>
 
     <script src="script.js"></script>
+    
+    <!-- Payment Verification -->
+    <script>
+        // Check if user has paid (simplified version)
+        function checkPaymentStatus() {
+            // In a real app, this would check with your backend
+            const hasPaid = sessionStorage.getItem('hasPaid');
+            
+            if (!hasPaid) {
+                // Redirect to payment page
+                alert('Please select a plan to access the workspace.');
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
+        }
+        
+        // Check payment on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkPaymentStatus();
+        });
+    </script>
 </body>
 </html>
