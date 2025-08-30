@@ -1,4 +1,13 @@
-// LineArt Pro - Interactive JavaScript
+// Sketcha - Interactive JavaScript
+
+// Configuración de la API
+const API_BASE_URL = window.location.origin;
+const API_ENDPOINTS = {
+    processImage: '/api/process-image',
+    validateFile: '/api/validate-file',
+    getCredits: '/api/credits',
+    getStats: '/api/stats'
+};
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize all components
@@ -7,6 +16,12 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeDownloadButtons();
     initializePricingButton();
     initializeAttemptsSystem();
+    
+    // Verificar conexión con el servidor
+    checkServerConnection();
+    
+    // Cargar créditos del usuario
+    loadUserCredits();
 });
 
 // File Upload Functionality
@@ -87,11 +102,155 @@ function removeFile(button) {
     uploadArea.classList.remove('border-green-400', 'bg-green-50');
 }
 
+// Funciones de conexión con el servidor
+async function checkServerConnection() {
+    try {
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getStats}`);
+        if (response.ok) {
+            console.log('✅ Servidor conectado correctamente');
+            return true;
+        }
+    } catch (error) {
+        console.error('❌ Error conectando con el servidor:', error);
+        showNotification('Error de conexión con el servidor', 'error');
+        return false;
+    }
+}
 
+async function loadUserCredits() {
+    try {
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getCredits}/default`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                updateCreditsDisplay(data.credits);
+            }
+        }
+    } catch (error) {
+        console.error('Error cargando créditos:', error);
+    }
+}
+
+function updateCreditsDisplay(credits) {
+    const creditsElements = document.querySelectorAll('[data-credits]');
+    creditsElements.forEach(element => {
+        element.textContent = credits;
+    });
+}
+
+// Función para mostrar modal de pago
+function showPaymentModal() {
+    // Crear modal de pago
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4 animate-fade-in">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-primary-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-credit-card text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Créditos Agotados</h3>
+                <p class="text-gray-600 mb-6">Has usado todos tus créditos gratuitos. Selecciona un plan para continuar:</p>
+                
+                <div class="space-y-3 mb-6">
+                    <button class="w-full bg-primary-500 text-white py-3 px-4 rounded-lg hover:bg-primary-600 transition-colors" onclick="selectPlan('basic')">
+                        <div class="font-semibold">$5 - 500 Créditos</div>
+                        <div class="text-sm opacity-90">Plan Básico</div>
+                    </button>
+                    <button class="w-full bg-gray-800 text-white py-3 px-4 rounded-lg hover:bg-gray-900 transition-colors" onclick="selectPlan('pro')">
+                        <div class="font-semibold">$10 - 1000 Créditos</div>
+                        <div class="text-sm opacity-90">Plan Profesional</div>
+                    </button>
+                </div>
+                
+                <button class="text-gray-500 hover:text-gray-700" onclick="closePaymentModal()">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Cerrar modal al hacer clic fuera
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closePaymentModal();
+        }
+    });
+}
+
+function closePaymentModal() {
+    const modal = document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function selectPlan(plan) {
+    const planInfo = plan === 'basic' ? 'Plan Básico ($5 - 500 créditos)' : 'Plan Profesional ($10 - 1000 créditos)';
+    showNotification(`Redirigiendo a pago para ${planInfo}...`, 'info');
+    
+    // Simular proceso de pago (en producción, integrar con Stripe/PayPal)
+    setTimeout(() => {
+        showNotification('Sistema de pagos en desarrollo. Por favor, contacta al administrador.', 'warning');
+        closePaymentModal();
+    }, 2000);
+}
+
+// Helper functions to find buttons by text content
+function findButtonByText(text) {
+    const buttons = document.querySelectorAll('button');
+    return Array.from(buttons).find(button => 
+        button.textContent.trim().includes(text)
+    );
+}
+
+function findButtonsByText(textArray) {
+    const buttons = document.querySelectorAll('button');
+    return Array.from(buttons).filter(button => 
+        textArray.some(text => button.textContent.trim().includes(text))
+    );
+}
+
+// Helper function to find the results area specifically
+function findResultsArea() {
+    // Buscar específicamente en el panel de Results
+    const resultsPanel = document.querySelector('.bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-8');
+    if (resultsPanel) {
+        const resultArea = resultsPanel.querySelector('.border-2.border-dashed.border-gray-300.rounded-xl.p-8.text-center.bg-gray-50.min-h-\\[400px\\]');
+        if (resultArea) {
+            return resultArea;
+        }
+    }
+    
+    // Fallback: buscar por texto "Results"
+    const allHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    const resultsHeading = Array.from(allHeadings).find(heading => 
+        heading.textContent.trim().includes('Results')
+    );
+    if (resultsHeading) {
+        const resultsSection = resultsHeading.closest('.bg-white.rounded-2xl');
+        if (resultsSection) {
+            const resultArea = resultsSection.querySelector('.border-2.border-dashed');
+            if (resultArea) {
+                return resultArea;
+            }
+        }
+    }
+    
+    // Fallback final: último border-dashed
+    const allBorderDashed = document.querySelectorAll('.border-2.border-dashed');
+    if (allBorderDashed.length >= 2) {
+        return allBorderDashed[allBorderDashed.length - 1];
+    }
+    
+    return null;
+}
 
 // Colorize Button Functionality
 function initializeColorizeButton() {
-    const colorizeBtn = document.querySelector('button:contains("Colorize Image")');
+    const colorizeBtn = findButtonByText('Colorize Image');
     if (!colorizeBtn) return;
 
     colorizeBtn.addEventListener('click', function() {
@@ -109,35 +268,126 @@ function initializeColorizeButton() {
         `;
         this.disabled = true;
 
-        // Simulate processing (replace with actual API call)
-        setTimeout(() => {
-            // Show result
-            const resultArea = document.querySelector('.border-dashed:last-of-type');
-            resultArea.innerHTML = `
-                <div class="relative">
-                    <img src="https://picsum.photos/400/300?random=123" alt="Colored Result" class="max-w-full max-h-48 object-contain rounded-lg">
-                    <div class="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
-                        <i class="fas fa-check mr-1"></i>Complete
-                    </div>
-                </div>
+        // Get the uploaded image data
+        const uploadedImage = lineArtArea.querySelector('img');
+        if (!uploadedImage) {
+            showNotification('No image found to process', 'error');
+            this.innerHTML = `
+                <i class="fas fa-magic mr-2"></i>
+                Colorize Image
             `;
-            resultArea.classList.add('border-green-400', 'bg-green-50');
+            this.disabled = false;
+            return;
+        }
 
+        // Convert image to base64 for API call
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        img.onload = async () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            
+            try {
+                // Convert to base64
+                const base64Image = canvas.toDataURL('image/jpeg').split(',')[1];
+                
+                // Preparar FormData para enviar la imagen
+                const formData = new FormData();
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg'));
+                formData.append('image', blob, 'line-art.jpg');
+                formData.append('userId', 'default');
+                
+                // Obtener instrucciones personalizadas si existen
+                const customInstructions = document.querySelector('#customInstructions')?.value || '';
+                if (customInstructions) {
+                    formData.append('customInstructions', customInstructions);
+                }
+                
+                // Call Nano Banana API
+                const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.processImage}`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show the generated result
+                    const resultArea = findResultsArea();
+                    if (resultArea) {
+                        let resultHTML = '';
+                        
+                        if (result.result.type === 'image') {
+                            // Mostrar imagen procesada
+                            resultHTML = `
+                                <div class="relative">
+                                    <img src="data:${result.result.mimeType};base64,${result.result.data}" alt="Colored Result" class="max-w-full max-h-48 object-contain rounded-lg">
+                                    <div class="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
+                                        <i class="fas fa-check mr-1"></i>Complete
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            // Mostrar texto de resultado
+                            resultHTML = `
+                                <div class="bg-blue-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold text-blue-900 mb-2">Resultado del Procesamiento:</h4>
+                                    <p class="text-blue-800">${result.result.data}</p>
+                                </div>
+                            `;
+                        }
+                        
+                        resultArea.innerHTML = resultHTML;
+                        resultArea.classList.add('border-green-400', 'bg-green-50');
+                    }
+                    
+                    // Actualizar créditos mostrados
+                    if (result.remainingCredits !== undefined) {
+                        updateCreditsDisplay(result.remainingCredits);
+                    }
+                    
+                    showNotification('Image colorized successfully with Nano Banana!', 'success');
+                } else {
+                    showNotification(`Error: ${result.error}`, 'error');
+                    
+                    // Si es error de créditos, mostrar modal de pago
+                    if (result.error && result.error.includes('Créditos insuficientes')) {
+                        showPaymentModal();
+                    }
+                }
+            } catch (error) {
+                console.error('API Error:', error);
+                showNotification('Error processing image with Nano Banana', 'error');
+            }
+            
             // Reset button
             this.innerHTML = `
                 <i class="fas fa-magic mr-2"></i>
                 Colorize Image
             `;
             this.disabled = false;
-
-            showNotification('Image colorized successfully!', 'success');
-        }, 3000);
+        };
+        
+        img.onerror = () => {
+            showNotification('Error loading image for processing', 'error');
+            this.innerHTML = `
+                <i class="fas fa-magic mr-2"></i>
+                Colorize Image
+            `;
+            this.disabled = false;
+        };
+        
+        img.src = uploadedImage.src;
     });
 }
 
 // Download Buttons Functionality
 function initializeDownloadButtons() {
-    const downloadButtons = document.querySelectorAll('button:contains("PNG"), button:contains("SVG")');
+    const downloadButtons = findButtonsByText(['PNG', 'SVG']);
     
     downloadButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -154,7 +404,7 @@ function initializeDownloadButtons() {
 
 // Pricing Button Functionality
 function initializePricingButton() {
-    const pricingButtons = document.querySelectorAll('button:contains("Get Started")');
+    const pricingButtons = findButtonsByText(['Get Started']);
     
     pricingButtons.forEach((button, index) => {
         button.addEventListener('click', function() {
@@ -261,7 +511,7 @@ document.querySelectorAll('button, .border-dashed').forEach(element => {
 document.addEventListener('keydown', function(e) {
     // Ctrl/Cmd + Enter to colorize
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        const colorizeBtn = document.querySelector('button:contains("Colorize Image")');
+        const colorizeBtn = findButtonByText('Colorize Image');
         if (colorizeBtn && !colorizeBtn.disabled) {
             colorizeBtn.click();
         }
@@ -317,8 +567,9 @@ function initializeAttemptsSystem() {
             attempts--;
             attemptsCount.textContent = attempts;
             
-            // Process the image (simulate)
-            processImage();
+            // Process the image using the existing colorize functionality
+            // The actual processing is handled by initializeColorizeButton()
+            // This is just for attempts tracking
             
             if (attempts === 0) {
                 setTimeout(() => {
@@ -335,66 +586,5 @@ function initializeAttemptsSystem() {
     });
 
     // Close modal when clicking outside
-    paymentModal.addEventListener('click', function(e) {
-        if (e.target === paymentModal) {
-            hidePaymentModal();
-        }
-    });
-
-    function showPaymentModal() {
-        paymentModal.classList.remove('hidden');
-        setTimeout(() => {
-            const modalContent = paymentModal.querySelector('div');
-            modalContent.style.transform = 'scale(1)';
-            modalContent.style.opacity = '1';
-        }, 10);
-    }
-
-    function hidePaymentModal() {
-        const modalContent = paymentModal.querySelector('div');
-        modalContent.style.transform = 'scale(0.95)';
-        modalContent.style.opacity = '0';
-        setTimeout(() => {
-            paymentModal.classList.add('hidden');
-        }, 300);
-    }
+    // Código duplicado eliminado - ya existe una implementación mejorada arriba
 }
-
-function processImage() {
-    // Simulate image processing
-    const colorizeBtn = document.getElementById('colorize-btn');
-    const originalText = colorizeBtn.innerHTML;
-    
-    colorizeBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
-    colorizeBtn.disabled = true;
-    
-    setTimeout(() => {
-        // Show result
-        const resultArea = document.querySelector('.border-dashed:last-of-type');
-        if (resultArea) {
-            resultArea.innerHTML = `
-                <div class="relative">
-                    <img src="https://picsum.photos/400/300?random=${Math.floor(Math.random() * 1000)}" alt="Colored Result" class="max-w-full max-h-48 object-contain rounded-lg">
-                    <div class="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
-                        <i class="fas fa-check mr-1"></i>Complete
-                    </div>
-                </div>
-            `;
-            resultArea.classList.add('border-green-400', 'bg-green-50');
-        }
-        
-        // Reset button
-        colorizeBtn.innerHTML = originalText;
-        colorizeBtn.disabled = false;
-        
-        showNotification('Image colorized successfully!', 'success');
-    }, 3000);
-}
-
-// Export functions for external use
-window.LineArtPro = {
-    showNotification,
-    validateForm,
-    addLoadingState,
-    processImage
-};
