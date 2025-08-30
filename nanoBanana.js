@@ -1,23 +1,11 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
 require('dotenv').config();
 
-// Configuración de Google AI
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-const model = genAI.getGenerativeModel({ 
-    model: process.env.GEMINI_MODEL || "gemini-2.5-flash-image-preview" 
-});
+// API Key para BFL AI
+const BFL_API_KEY = 'd8f7caa2-c774-44cc-a287-f429dba98456';
 
 // Sistema de créditos (en memoria - en producción usar base de datos)
 let userCredits = {
     default: parseInt(process.env.MAX_CREDITS_PER_USER) || 1000 // Créditos iniciales
-};
-
-// Configuración por defecto de Gemini
-const defaultConfig = {
-    temperature: parseFloat(process.env.GEMINI_TEMPERATURE) || 0.7,
-    topK: parseInt(process.env.GEMINI_TOP_K) || 40,
-    topP: parseFloat(process.env.GEMINI_TOP_P) || 0.95,
-    maxOutputTokens: parseInt(process.env.GEMINI_MAX_TOKENS) || 2048,
 };
 
 /**
@@ -54,9 +42,10 @@ function getCredits(userId = 'default') {
 }
 
 /**
- * Procesa una imagen con Gemini 2.5 Flash para colorización
+ * Procesa una imagen con BFL AI para colorización
  * @param {string} base64Image - Imagen en base64
  * @param {string} userId - ID del usuario
+ * @param {string} customInstructions - Instrucciones personalizadas
  * @returns {Object} - Resultado del procesamiento
  */
 async function processImageWithNanoBanana(base64Image, userId = 'default', customInstructions = '') {
@@ -71,161 +60,115 @@ async function processImageWithNanoBanana(base64Image, userId = 'default', custo
             throw new Error('Invalid image input. Base64 string is required.');
         }
 
-        // Prompt para colorización - optimizado para gemini-2.5-flash-image-preview
-        const prompt = customInstructions || "Generate a colored version of this black and white line art. Use vibrant, professional colors while maintaining the original line structure. Create a high-quality digital artwork.";
+        console.log('🚀 Procesando imagen con BFL AI...');
+        console.log('🔑 BFL API Key:', BFL_API_KEY.substring(0, 8) + '...');
+        
+        // Prompt para colorización mejorado
+        const basePrompt = customInstructions || "photorealistic colors, natural lighting, detailed textures, high contrast, cinematic quality";
+        const prompt = `Take this exact line art image and colorize it with ${basePrompt}. Maintain the exact same composition, lines, and structure. Only add colors, do not change the drawing. Create a beautiful, professional colored version that looks exactly like the original but with realistic colors.`;
 
-        // Configurar la generación - optimizado para gemini-2.5-flash-image-preview
-        const generationConfig = {
-            temperature: 0.8, // Mayor creatividad para imágenes
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 4096, // Más tokens para imágenes
-            ...(customInstructions && { temperature: 0.9 })
+        // Paso 1: Enviar solicitud a BFL AI con imagen
+        const requestBody = {
+            prompt: prompt,
+            image: base64Image, // ✅ Enviar la imagen original
+            aspect_ratio: "1:1"
         };
 
-        // Procesar la imagen
-        const result = await model.generateContent([
-            prompt,
-            {
-                inlineData: {
-                    mimeType: "image/jpeg",
-                    data: base64Image
+        const response = await fetch('https://api.bfl.ai/v1/flux-pro-1.1', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-key': BFL_API_KEY
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            throw new Error(`BFL AI Error: ${response.status} ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log('📋 Respuesta inicial de BFL AI:', result);
+
+        if (!result.id || !result.polling_url) {
+            throw new Error('No se recibió id o polling_url');
+        }
+
+        // Paso 2: Polling optimizado según documentación BFL
+        let attempts = 0;
+        const maxAttempts = 120; // Máximo 60 segundos (120 * 0.5 segundos)
+        
+        while (attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 500)); // Esperar 0.5 segundos (recomendado)
+            
+            const statusResponse = await fetch(result.polling_url, {
+                headers: {
+                    'accept': 'application/json',
+                    'x-key': BFL_API_KEY
+                }
+            });
+
+            if (!statusResponse.ok) {
+                if (statusResponse.status === 429) {
+                    throw new Error('Rate limit exceeded. Too many requests.');
+                } else if (statusResponse.status === 402) {
+                    throw new Error('Out of credits. Please add more credits.');
+                } else {
+                    throw new Error(`Status check failed: ${statusResponse.status} ${statusResponse.statusText}`);
                 }
             }
-        ], generationConfig);
 
-        // Esperar la respuesta completa
-        const response = await result.response;
-        
-        // Debug: ver qué está devolviendo la IA
-        console.log('🔍 Gemini Response:', response);
-        console.log('🔍 Response candidates:', response.candidates);
-        console.log('🔍 Response text:', response.text());
-        console.log('🔍 Response parts:', response.candidates?.[0]?.content?.parts);
-        
-        // Verificar si la respuesta contiene una imagen
-        if (response.candidates && response.candidates[0] && response.candidates[0].content && response.candidates[0].content.parts) {
-            const parts = response.candidates[0].content.parts;
-            const imagePart = parts.find(part => part.inlineData);
-            
-            if (imagePart && imagePart.inlineData) {
-                // Retornar la imagen procesada
-                return {
-                    success: true,
-                    result: {
-                        type: 'image',
-                        data: imagePart.inlineData.data,
-                        mimeType: imagePart.inlineData.mimeType
-                    },
-                    creditsUsed: 2,
-                    remainingCredits: getCredits(userId),
-                    message: 'Imagen procesada exitosamente con Nano Banana (Gemini 2.5 Flash)'
-                };
+            const statusResult = await statusResponse.json();
+            console.log(`🔄 Intento ${attempts + 1}: Status = ${statusResult.status}`);
+
+            if (statusResult.status === 'Ready') {
+                // ¡Imagen lista!
+                console.log('🎨 ¡Imagen lista! URL:', statusResult.result?.sample);
+                
+                if (deductCredits(userId, 2)) {
+                    return {
+                        success: true,
+                        result: {
+                            type: 'image',
+                            data: statusResult.result.sample,
+                            mimeType: 'image/jpeg'
+                        },
+                        creditsUsed: 2,
+                        remainingCredits: getCredits(userId),
+                        message: 'Imagen coloreada generada exitosamente con BFL AI'
+                    };
+                } else {
+                    throw new Error('Failed to deduct credits');
+                }
+            } else if (statusResult.status === 'Failed' || statusResult.status === 'Error') {
+                throw new Error(`La generación de imagen falló: ${statusResult.status}`);
+            } else if (statusResult.status === 'Pending') {
+                // Continuar polling
+                console.log(`⏳ Procesando... (${attempts + 1}/${maxAttempts})`);
             }
+
+            attempts++;
         }
-        
-        // Si no hay imagen, retornar el texto
-        const textResult = {
-            success: true,
-            result: {
-                type: 'text',
-                data: response.text()
-            },
-            creditsUsed: 2,
-            remainingCredits: getCredits(userId),
-            message: 'Imagen procesada exitosamente con Nano Banana (Gemini 2.5 Flash)'
-        };
-        
-        // Descontar créditos solo si fue exitoso
-        if (deductCredits(userId, 2)) {
-            return textResult;
-        } else {
-            throw new Error('Failed to deduct credits');
-        }
+
+        throw new Error('Tiempo de espera agotado. La imagen tardó demasiado en generarse.');
 
     } catch (error) {
-        console.error('Error in Nano Banana processing:', error);
+        console.error('Error en el procesamiento con BFL AI:', error);
         
         return {
             success: false,
             error: error.message,
             remainingCredits: getCredits(userId),
-            message: 'Failed to process image'
+            message: 'Failed to process image with BFL AI'
         };
     }
 }
 
-/**
- * Función de test básica
- * @returns {Object} - Resultado del test
- */
-async function testNanoBanana() {
-    try {
-        console.log('🧪 Testing Nano Banana integration...');
-        
-        // Test 1: Validar créditos
-        console.log('💰 Initial credits:', getCredits());
-        
-        // Test 2: Validar función de créditos
-        const hasCredits = validateCredits('default', 2);
-        console.log('✅ Has sufficient credits:', hasCredits);
-        
-        // Test 3: Descontar créditos
-        const deducted = deductCredits('default', 2);
-        console.log('💸 Credits deducted:', deducted);
-        console.log('📊 Remaining credits:', getCredits());
-        
-        // Test 4: Restaurar créditos para testing
-        userCredits.default = 10;
-        console.log('🔄 Credits restored for testing');
-        
-        return {
-            success: true,
-            message: 'All tests passed successfully',
-            finalCredits: getCredits()
-        };
-        
-    } catch (error) {
-        console.error('❌ Test failed:', error);
-        return {
-            success: false,
-            error: error.message
-        };
-    }
-}
-
-/**
- * Agregar créditos a un usuario (para testing)
- * @param {string} userId - ID del usuario
- * @param {number} credits - Créditos a agregar
- */
-function addCredits(userId = 'default', credits = 10) {
-    if (!userCredits[userId]) {
-        userCredits[userId] = 0;
-    }
-    userCredits[userId] += credits;
-    return userCredits[userId];
-}
-
+// Exportar funciones
 module.exports = {
     processImageWithNanoBanana,
     validateCredits,
     deductCredits,
-    getCredits,
-    addCredits,
-    testNanoBanana
+    getCredits
 };
-
-// Función para ejecutar tests si se llama directamente
-if (require.main === module) {
-    console.log('🚀 Starting Nano Banana tests...\n');
-    testNanoBanana().then(result => {
-        if (result.success) {
-            console.log('\n🎉 All tests passed!');
-            console.log('📊 Final credit balance:', result.finalCredits);
-        } else {
-            console.log('\n❌ Tests failed:', result.error);
-        }
-    });
-}
 

@@ -26,41 +26,47 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // File Upload Functionality
 function initializeFileUploads() {
-    const uploadAreas = document.querySelectorAll('.border-dashed');
+    const imageUploadArea = document.getElementById('image-upload-area');
+    console.log('🔍 Buscando image-upload-area:', imageUploadArea);
     
-    uploadAreas.forEach(area => {
+    if (imageUploadArea) {
+        console.log('✅ image-upload-area encontrado, agregando event listeners');
         // Click to upload
-        area.addEventListener('click', () => {
+        imageUploadArea.addEventListener('click', () => {
+            console.log('🖱️ Click en image-upload-area');
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/*';
-            input.onchange = (e) => handleFileSelect(e, area);
+            input.onchange = (e) => handleFileSelect(e, imageUploadArea);
             input.click();
         });
 
         // Drag and drop
-        area.addEventListener('dragover', (e) => {
+        imageUploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
-            area.classList.add('border-primary-400', 'bg-primary-50');
+            imageUploadArea.classList.add('border-primary-400', 'bg-primary-50');
         });
 
-        area.addEventListener('dragleave', (e) => {
+        imageUploadArea.addEventListener('dragleave', (e) => {
             e.preventDefault();
-            area.classList.remove('border-primary-400', 'bg-primary-50');
+            imageUploadArea.classList.remove('border-primary-400', 'bg-primary-50');
         });
 
-        area.addEventListener('drop', (e) => {
+        imageUploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
-            area.classList.remove('border-primary-400', 'bg-primary-50');
+            imageUploadArea.classList.remove('border-primary-400', 'bg-primary-50');
             const files = e.dataTransfer.files;
             if (files.length > 0) {
-                handleFileSelect({ target: { files } }, area);
+                handleFileSelect({ target: { files } }, imageUploadArea);
             }
         });
-    });
+    } else {
+        console.log('❌ image-upload-area NO encontrado');
+    }
 }
 
 function handleFileSelect(event, uploadArea) {
+    console.log('📁 handleFileSelect ejecutado');
     const file = event.target.files[0];
     if (!file) return;
 
@@ -93,11 +99,11 @@ function handleFileSelect(event, uploadArea) {
 }
 
 function removeFile(button) {
-    const uploadArea = button.closest('.border-dashed');
+    const uploadArea = button.closest('#image-upload-area');
     uploadArea.innerHTML = `
-        <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-4"></i>
-        <p class="text-gray-600 mb-2">Click to upload or drag your image here</p>
-        <p class="text-sm text-gray-500">Supports PNG, JPG, SVG up to 10MB</p>
+        <i class="fas fa-image text-2xl text-gray-400 mb-2"></i>
+        <p class="text-gray-600 text-sm">Click to add image or drag here</p>
+        <p class="text-xs text-gray-500 mt-1">PNG, JPG, SVG up to 10MB</p>
     `;
     uploadArea.classList.remove('border-green-400', 'bg-green-50');
 }
@@ -254,24 +260,24 @@ function initializeColorizeButton() {
     if (!colorizeBtn) return;
 
     colorizeBtn.addEventListener('click', function() {
-        // Check if line art image is uploaded
-        const lineArtArea = document.querySelector('.border-dashed');
-        if (!lineArtArea.classList.contains('border-green-400')) {
-            showNotification('Please upload a line art image first', 'error');
+        // Check if image is uploaded
+        const imageUploadArea = document.getElementById('image-upload-area');
+        if (!imageUploadArea.classList.contains('border-green-400')) {
+            showNotification('Please upload an image first', 'error');
             return;
         }
 
-        // Show loading state
+        // Show loading state with polling progress
         this.innerHTML = `
             <i class="fas fa-spinner fa-spin mr-2"></i>
-            Processing...
+            Enviando a BFL AI...
         `;
         this.disabled = true;
 
         // Get the uploaded image data
-        const uploadedImage = lineArtArea.querySelector('img');
+        const uploadedImage = imageUploadArea.querySelector('img');
         if (!uploadedImage) {
-            showNotification('No image found to process', 'error');
+            showNotification('Please upload an image first', 'error');
             this.innerHTML = `
                 <i class="fas fa-magic mr-2"></i>
                 Colorize Image
@@ -301,8 +307,9 @@ function initializeColorizeButton() {
                 formData.append('image', blob, 'line-art.jpg');
                 formData.append('userId', 'default');
                 
-                // Obtener instrucciones personalizadas si existen
-                const customInstructions = document.querySelector('#customInstructions')?.value || '';
+                // Obtener el prompt del usuario
+                const promptInput = document.getElementById('prompt-input');
+                const customInstructions = promptInput?.value || '';
                 if (customInstructions) {
                     formData.append('customInstructions', customInstructions);
                 }
@@ -322,10 +329,10 @@ function initializeColorizeButton() {
                         let resultHTML = '';
                         
                         if (result.result.type === 'image') {
-                            // Mostrar imagen procesada
+                            // Mostrar imagen procesada (URL directa de BFL AI)
                             resultHTML = `
                                 <div class="relative">
-                                    <img src="data:${result.result.mimeType};base64,${result.result.data}" alt="Colored Result" class="max-w-full max-h-48 object-contain rounded-lg">
+                                    <img src="${result.result.data}" alt="Colored Result" class="max-w-full max-h-48 object-contain rounded-lg">
                                     <div class="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
                                         <i class="fas fa-check mr-1"></i>Complete
                                     </div>

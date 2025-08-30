@@ -1,7 +1,7 @@
 {
   "name": "sketcha-ai",
   "version": "1.0.0",
-  "description": "AI-powered line art coloring with Nano Banana (Gemini 2.5 Flash)",
+  "description": "AI-powered line art coloring with Nano Banana (Flux.1 Kontext [Pro])",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -9,17 +9,22 @@
     "test": "node nanoBanana.js"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.21.0",
-    "express": "^4.18.2",
-    "multer": "^1.4.5-lts.1",
+    "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "cors": "^2.8.5"
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
   },
-  "keywords": ["ai", "coloring", "sketch", "nano-banana", "gemini", "google-ai"],
+  "keywords": [
+    "ai",
+    "coloring",
+    "sketch",
+    "nano-banana",
+    "flux",
+    "image-generation"
+  ],
   "author": "Sketcha Team",
   "license": "MIT"
 }
-
